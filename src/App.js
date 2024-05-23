@@ -8,16 +8,24 @@ function App() {
   }
 
   function handleDeleteItems(id){
-    console.log(id)
     setItems(items=> items.filter(item=> item.id !== id))
+  }
+
+  function handleOnToggleItem(id){
+    setItems(items => 
+      items.map(item => 
+        item.id === id ? { ...item, packed: !item.packed } : item
+      )
+    );
+    console.log(items);
   }
 
   return (
     <div className="app">
       <Logo/>
       <Form onAddItem = {handleAddItems}/>
-      <PackingList items= {items} onDeleteItem={handleDeleteItems}/>
-      <Stats/>
+      <PackingList items= {items} onDeleteItem={handleDeleteItems} onToggleItem={handleOnToggleItem}/>
+      <Stats items={items}/>
     </div>
   );
 }
@@ -41,7 +49,6 @@ function Form({onAddItem}){
       id:Date.now()
     }
 
-    console.log(newItem)
     onAddItem(newItem)
 
     setDescription('')
@@ -60,20 +67,22 @@ function Form({onAddItem}){
   )
 }
 
-function PackingList({items, onDeleteItem}){
+function PackingList({items, onDeleteItem, onToggleItem}){
   return <div className="list">
         <ul>
           {items.map(
-            (item) => <Item item = {item} onDeleteItem={onDeleteItem} key={item.id}/>
+            (item) => <Item item = {item} onDeleteItem={onDeleteItem} onToggleItem={onToggleItem} key={item.id}/>
           )}
         </ul>
   </div>
 }
 
-function  Item({item, onDeleteItem}){
+function  Item({item, onDeleteItem, onToggleItem}){
   const { description, quantity, packed } = item;
+  console.log(packed)
   return (
     <li>
+      <input type="checkbox" checked={packed} onChange={() =>onToggleItem(item.id)}/>
       <span style={packed ? { textDecoration: '' } : {}}>
         {quantity} {description}
       </span>
@@ -82,9 +91,20 @@ function  Item({item, onDeleteItem}){
   )
 }
 
-function Stats(){
+function Stats({items}){
+  if(!items.length)return(
+   <footer className="stats">
+    <p>
+      <em>Start ading items.</em>
+    </p>
+   </footer>
+  )
+  const numOfItems = items.length;
+  const packed = items.filter(item=> item.packed).length;
+  const percPacked = Math.round(packed/numOfItems * 100);
+
   return <footer className="stats">
-          <em>You have X items packed from X items.</em>
+          <em>You have {packed} items packed from {numOfItems} items({percPacked}%).</em>
         </footer>
 }
 
